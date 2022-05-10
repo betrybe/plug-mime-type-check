@@ -3,7 +3,6 @@ defmodule MimeTypeCheckTest do
   use ExUnit.Case, async: true
   use Plug.Test
   import Plug.Conn, only: [put_req_header: 3]
-  import Phoenix.ConnTest, only: [build_conn: 3]
 
   @cwd File.cwd!()
 
@@ -25,7 +24,7 @@ defmodule MimeTypeCheckTest do
     }
 
     conn =
-      build_conn("post", "/", %{"document" => exe_file, "some_param" => "Lorem ipsum"})
+      conn("post", "/", %{"document" => exe_file, "some_param" => "Lorem ipsum"})
       |> put_req_header("content-type", "multipart/form-data")
       |> MimeTypeCheck.call(%{allowed_mime_types: @allowed_mime_types})
 
@@ -47,7 +46,7 @@ defmodule MimeTypeCheckTest do
     }
 
     conn =
-      build_conn("post", "/", %{"file1" => exe_file, "file2" => sh_file})
+      conn("post", "/", %{"file1" => exe_file, "file2" => sh_file})
       |> put_req_header("content-type", "multipart/form-data")
       |> MimeTypeCheck.call(%{allowed_mime_types: @allowed_mime_types})
 
@@ -65,7 +64,7 @@ defmodule MimeTypeCheckTest do
     }
 
     conn =
-      build_conn("post", "/", %{"document" => png_file, "some_param" => "Lorem ipsum"})
+      conn("post", "/", %{"document" => png_file, "some_param" => "Lorem ipsum"})
       |> put_req_header("content-type", "multipart/form-data")
       |> MimeTypeCheck.call(%{allowed_mime_types: @allowed_mime_types})
 
@@ -75,7 +74,7 @@ defmodule MimeTypeCheckTest do
 
   test "returns conn when content-type header is not multipart/form-data" do
     conn =
-      build_conn("post", "/", %{"some_param" => "Lorem ipsum"})
+      conn("post", "/", %{"some_param" => "Lorem ipsum"})
       |> put_req_header("content-type", "application/json")
       |> MimeTypeCheck.call(%{allowed_mime_types: @allowed_mime_types})
 
@@ -109,7 +108,7 @@ defmodule MimeTypeCheckTest do
     }
 
     conn =
-      build_conn("post", "/", %{"documents" => documents, "some_param" => "Lorem ipsum"})
+      conn("post", "/", %{"documents" => documents, "some_param" => "Lorem ipsum"})
       |> put_req_header("content-type", "multipart/form-data")
       |> MimeTypeCheck.call(%{allowed_mime_types: @allowed_mime_types})
 
@@ -132,7 +131,7 @@ defmodule MimeTypeCheckTest do
     }
 
     conn =
-      build_conn("post", "/", %{"user" => user, "some_param" => "Lorem ipsum"})
+      conn("post", "/", %{"user" => user, "some_param" => "Lorem ipsum"})
       |> put_req_header("content-type", "multipart/form-data")
       |> MimeTypeCheck.call(%{allowed_mime_types: @allowed_mime_types})
 

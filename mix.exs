@@ -23,12 +23,12 @@ defmodule MimeTypeCheck.MixProject do
   # Type `mix help compile.app` for more information.
   def application do
     [
-      extra_applications: [:logger, :runtime_tools, :phoenix]
+      extra_applications: [:logger, :runtime_tools]
     ]
   end
 
   defp description() do
-    "A Phoenix Plug that checks the mime type of a uploaded file trough API request"
+    "A Plug that checks the mime type of a uploaded file trough API request"
   end
 
   defp package() do
@@ -47,7 +47,6 @@ defmodule MimeTypeCheck.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:phoenix, "~> 1.5.4"},
       {:plug_cowboy, "~> 2.3"},
       {:jason, "~> 1.0"},
       {:ex_doc, "~> 0.28.4", only: :dev, runtime: false}
