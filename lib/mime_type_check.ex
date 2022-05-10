@@ -76,10 +76,10 @@ defmodule MimeTypeCheck do
     sufix = if length(fields) > 1, do: "s", else: ""
     msg = "Invalid file#{sufix} mime type#{sufix} in field#{sufix}: " <> Enum.join(fields, ", ")
 
-    response = Jason.encode!(%{error_message: msg})
+    response = Jason.encode_to_iodata!(%{error_message: msg})
 
     conn
-    |> put_resp_content_type("application/json", response)
+    |> put_resp_content_type("application/json")
     |> send_resp(:bad_request, response)
     |> halt()
   end
