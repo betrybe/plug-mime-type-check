@@ -5,14 +5,14 @@ defmodule MimeTypeCheck do
   import Plug.Conn
 
   def init(opts) do
-    {allowed_mime_types, opts} = Keyword.pop(opts, :allowed_mime_types)
+    {allowed_mime_types, _} = Keyword.pop(opts, :allowed_mime_types)
 
     unless allowed_mime_types do
       raise ArgumentError,
             "MimeTypeCheck expects a set of mime-types to be given in :allowed_mime_types"
     end
 
-    %{allowed_mime_types: allowed_mime_types, params: opts}
+    %{allowed_mime_types: allowed_mime_types}
   end
 
   def call(conn, opts) do
@@ -22,22 +22,19 @@ defmodule MimeTypeCheck do
     end
   end
 
-  defp check_mime_type(conn, opts) do
-    case check_invalids(opts) do
+  defp check_mime_type(%{params: params} = conn, opts) do
+    case check_invalids(params, opts[:allowed_mime_types]) do
       [] -> conn
       invalid_fields -> send_bad_request_response(conn, invalid_fields)
     end
   end
 
-  defp check_invalids(opts) do
-    opts[:params]
-    |> Enum.map(fn {k, v} -> {k, check_value(v, opts[:allowed_mime_types])} end)
+  defp check_invalids(params, allowed_mime_types) do
+    params
+    |> Enum.map(fn {k, v} -> {k, check_value(v, allowed_mime_types)} end)
     |> Enum.filter(fn v -> v |> elem(1) |> filter_invalids() end)
     |> Enum.map(fn v -> elem(v, 0) end)
   end
-
-  defp check_invalids(opts, allowed_mime_types),
-    do: check_invalids(%{params: opts, allowed_mime_types: allowed_mime_types})
 
   defp check_value(%Plug.Upload{} = v, allowed_mime_types),
     do: Enum.member?(allowed_mime_types, get_file_type(v.path))

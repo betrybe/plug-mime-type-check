@@ -3,11 +3,19 @@ defmodule MimeTypeCheckTest do
   use ExUnit.Case, async: true
   use Plug.Test
   import Plug.Conn, only: [put_req_header: 3]
-  import Phoenix.ConnTest, only: [build_conn: 0]
+  import Phoenix.ConnTest, only: [build_conn: 3]
 
   @cwd File.cwd!()
 
   @allowed_mime_types ~w(image/png)
+
+  test "returns error when :allowed_mime_types is not defined on init" do
+    assert_raise ArgumentError,
+                 "MimeTypeCheck expects a set of mime-types to be given in :allowed_mime_types",
+                 fn ->
+                   MimeTypeCheck.init([])
+                 end
+  end
 
   test "returns bad request when file mime type is invalid" do
     exe_file = %Plug.Upload{
@@ -17,12 +25,9 @@ defmodule MimeTypeCheckTest do
     }
 
     conn =
-      build_conn()
+      build_conn("post", "/", %{"document" => exe_file, "some_param" => "Lorem ipsum"})
       |> put_req_header("content-type", "multipart/form-data")
-      |> MimeTypeCheck.call(%{
-        params: %{"document" => exe_file, "some_param" => "Lorem ipsum"},
-        allowed_mime_types: @allowed_mime_types
-      })
+      |> MimeTypeCheck.call(%{allowed_mime_types: @allowed_mime_types})
 
     assert conn.resp_body == "{\"error_message\":\"Invalid file mime type in field: document\"}"
     assert conn.status == 400
@@ -42,12 +47,9 @@ defmodule MimeTypeCheckTest do
     }
 
     conn =
-      build_conn()
+      build_conn("post", "/", %{"file1" => exe_file, "file2" => sh_file})
       |> put_req_header("content-type", "multipart/form-data")
-      |> MimeTypeCheck.call(%{
-        params: %{"file1" => exe_file, "file2" => sh_file},
-        allowed_mime_types: @allowed_mime_types
-      })
+      |> MimeTypeCheck.call(%{allowed_mime_types: @allowed_mime_types})
 
     assert conn.resp_body ==
              "{\"error_message\":\"Invalid files mime types in fields: file1, file2\"}"
@@ -63,12 +65,9 @@ defmodule MimeTypeCheckTest do
     }
 
     conn =
-      build_conn()
+      build_conn("post", "/", %{"document" => png_file, "some_param" => "Lorem ipsum"})
       |> put_req_header("content-type", "multipart/form-data")
-      |> MimeTypeCheck.call(%{
-        params: %{"document" => png_file, "some_param" => "Lorem ipsum"},
-        allowed_mime_types: @allowed_mime_types
-      })
+      |> MimeTypeCheck.call(%{allowed_mime_types: @allowed_mime_types})
 
     assert %Plug.Conn{} = conn
     assert conn.status == nil
@@ -76,12 +75,9 @@ defmodule MimeTypeCheckTest do
 
   test "returns conn when content-type header is not multipart/form-data" do
     conn =
-      build_conn()
+      build_conn("post", "/", %{"some_param" => "Lorem ipsum"})
       |> put_req_header("content-type", "application/json")
-      |> MimeTypeCheck.call(%{
-        params: %{"some_param" => "Lorem ipsum"},
-        allowed_mime_types: @allowed_mime_types
-      })
+      |> MimeTypeCheck.call(%{allowed_mime_types: @allowed_mime_types})
 
     assert %Plug.Conn{} = conn
     assert conn.status == nil
@@ -113,12 +109,9 @@ defmodule MimeTypeCheckTest do
     }
 
     conn =
-      build_conn()
+      build_conn("post", "/", %{"documents" => documents, "some_param" => "Lorem ipsum"})
       |> put_req_header("content-type", "multipart/form-data")
-      |> MimeTypeCheck.call(%{
-        params: %{"documents" => documents, "some_param" => "Lorem ipsum"},
-        allowed_mime_types: @allowed_mime_types
-      })
+      |> MimeTypeCheck.call(%{allowed_mime_types: @allowed_mime_types})
 
     assert conn.resp_body == "{\"error_message\":\"Invalid file mime type in field: documents\"}"
     assert conn.status == 400
@@ -139,12 +132,9 @@ defmodule MimeTypeCheckTest do
     }
 
     conn =
-      build_conn()
+      build_conn("post", "/", %{"user" => user, "some_param" => "Lorem ipsum"})
       |> put_req_header("content-type", "multipart/form-data")
-      |> MimeTypeCheck.call(%{
-        params: %{"user" => user, "some_param" => "Lorem ipsum"},
-        allowed_mime_types: @allowed_mime_types
-      })
+      |> MimeTypeCheck.call(%{allowed_mime_types: @allowed_mime_types})
 
     assert conn.resp_body == "{\"error_message\":\"Invalid file mime type in field: user\"}"
     assert conn.status == 400
