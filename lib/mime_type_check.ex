@@ -4,30 +4,15 @@ defmodule MimeTypeCheck do
   """
   import Plug.Conn
 
-  @allowed_mime_types ~w(
-    application/zip
-    application/pdf
-    application/json
-    text/plain
-    text/html
-    image/bmp
-    image/gif
-    image/jpeg
-    image/jpg
-    image/pipeg
-    image/svg+xml
-    image/tiff
-    image/png
-  )
-
   def init(opts) do
     {allowed_mime_types, opts} = Keyword.pop(opts, :allowed_mime_types)
 
     unless allowed_mime_types do
-      raise ArgumentError, "MimeTypeCheck expects a set of mime-types to be given in :allowed_mime_types"
+      raise ArgumentError,
+            "MimeTypeCheck expects a set of mime-types to be given in :allowed_mime_types"
     end
 
-    opts
+    %{allowed_mime_types: allowed_mime_types, params: opts}
   end
 
   def call(conn, opts) do
@@ -45,17 +30,22 @@ defmodule MimeTypeCheck do
   end
 
   defp check_invalids(opts) do
-    opts
-    |> Enum.map(fn {k, v} -> {k, check_value(v)} end)
+    opts[:params]
+    |> Enum.map(fn {k, v} -> {k, check_value(v, opts[:allowed_mime_types])} end)
     |> Enum.filter(fn v -> v |> elem(1) |> filter_invalids() end)
     |> Enum.map(fn v -> elem(v, 0) end)
   end
 
-  defp check_value(%Plug.Upload{} = v),
-    do: Enum.member?(@allowed_mime_types, get_file_type(v.path))
+  defp check_invalids(opts, allowed_mime_types),
+    do: check_invalids(%{params: opts, allowed_mime_types: allowed_mime_types})
 
-  defp check_value(v) when is_map(v), do: check_invalids(v)
-  defp check_value(_), do: true
+  defp check_value(%Plug.Upload{} = v, allowed_mime_types),
+    do: Enum.member?(allowed_mime_types, get_file_type(v.path))
+
+  defp check_value(v, allowed_mime_types) when is_map(v),
+    do: check_invalids(v, allowed_mime_types)
+
+  defp check_value(_, _), do: true
 
   defp filter_invalids(v) when is_list(v), do: v != []
   defp filter_invalids(v), do: v == false
