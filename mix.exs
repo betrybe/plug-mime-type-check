@@ -1,10 +1,10 @@
-defmodule MimeTypeCheck.MixProject do
+defmodule PlugMimeTypeCheck.MixProject do
   @moduledoc false
   use Mix.Project
 
   def project do
     [
-      app: :mime_type_check,
+      app: :plug_mime_type_check,
       version: "0.1.0",
       elixir: "~> 1.13",
       elixirc_paths: elixirc_paths(Mix.env()),
