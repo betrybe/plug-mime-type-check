@@ -1,0 +1,67 @@
+name: Plug Tests
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  test:
+    name: Test & Checks
+    timeout-minutes: 10
+
+    strategy:
+      matrix:
+        os: [ubuntu-20.04]
+        elixir: [1.13.3]
+        otp: [24.0.3]
+    runs-on: ${{ matrix.os }}
+
+    env:
+      MIX_ENV: test
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Cache dependencies
+        uses: actions/cache@v2
+        id: cache-deps
+        with:
+          path: deps
+          key: ${{ matrix.os }}-${{ matrix.otp }}-${{ matrix.elixir }}-mix-${{ hashFiles('**/mix.lock') }}
+
+      - name: Setup Elixir
+        uses: erlef/setup-beam@v1
+        with:
+          otp-version: ${{ matrix.otp }}
+          elixir-version: ${{ matrix.elixir }}
+          version-type: strict
+
+      - name: Install dependencies
+        if: steps.cache-deps.outputs.cache-hit != 'true'
+        run: mix deps.get
+
+      - name: Check unused dependencies
+        run: mix deps.unlock --check-unused
+
+      - name: Check outdated dependencies
+        run: mix hex.outdated
+
+      - name: Check formatting
+        run: mix format --check-formatted
+
+      - name: Cache build
+        uses: actions/cache@v2
+        id: cache-build
+        with:
+          path: _build/test
+          key: ${{ matrix.os }}-${{ matrix.otp }}-${{ matrix.elixir }}-mix-${{ hashFiles('mix.lock', 'mix.exs', 'config/*.exs') }}
+
+      - name: Compile code
+        run: mix compile --warnings-as-errors --all-warnings
+
+      - name: Run Credo
+        run: mix credo --strict
+
+      - name: Run tests
+        run: mix test
