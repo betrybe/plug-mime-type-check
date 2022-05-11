@@ -49,7 +49,8 @@ defmodule PlugMimeTypeCheck.MixProject do
     [
       {:plug_cowboy, "~> 2.3"},
       {:jason, "~> 1.0"},
-      {:ex_doc, "~> 0.28.4", only: :dev, runtime: false}
+      {:ex_doc, "~> 0.28.4", only: :dev, runtime: false},
+      {:credo, "~> 1.6", only: [:dev, :test], runtime: false}
     ]
   end
 end
