@@ -1,6 +1,6 @@
-# Plug.PlugMimeTypeCheck
+# PlugMimeTypeCheck
 
-**TODO: Add description**
+A Plug that checks the mime type of a uploaded file trough API request
 
 ## Installation
 
