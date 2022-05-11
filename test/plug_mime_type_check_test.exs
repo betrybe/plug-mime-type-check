@@ -1,4 +1,4 @@
-defmodule MimeTypeCheckTest do
+defmodule PlugMimeTypeCheckTest do
   @moduledoc false
   use ExUnit.Case, async: true
   use Plug.Test
@@ -10,9 +10,9 @@ defmodule MimeTypeCheckTest do
 
   test "returns error when :allowed_mime_types is not defined on init" do
     assert_raise ArgumentError,
-                 "MimeTypeCheck expects a set of mime-types to be given in :allowed_mime_types",
+                 "PlugMimeTypeCheck expects a set of mime-types to be given in :allowed_mime_types",
                  fn ->
-                   MimeTypeCheck.init([])
+                   PlugMimeTypeCheck.init([])
                  end
   end
 
@@ -26,7 +26,7 @@ defmodule MimeTypeCheckTest do
     conn =
       conn("post", "/", %{"document" => exe_file, "some_param" => "Lorem ipsum"})
       |> put_req_header("content-type", "multipart/form-data")
-      |> MimeTypeCheck.call(%{allowed_mime_types: @allowed_mime_types})
+      |> PlugMimeTypeCheck.call(%{allowed_mime_types: @allowed_mime_types})
 
     assert conn.resp_body == "{\"error_message\":\"Invalid file mime type in field: document\"}"
     assert conn.status == 400
@@ -48,7 +48,7 @@ defmodule MimeTypeCheckTest do
     conn =
       conn("post", "/", %{"file1" => exe_file, "file2" => sh_file})
       |> put_req_header("content-type", "multipart/form-data")
-      |> MimeTypeCheck.call(%{allowed_mime_types: @allowed_mime_types})
+      |> PlugMimeTypeCheck.call(%{allowed_mime_types: @allowed_mime_types})
 
     assert conn.resp_body ==
              "{\"error_message\":\"Invalid files mime types in fields: file1, file2\"}"
@@ -66,7 +66,7 @@ defmodule MimeTypeCheckTest do
     conn =
       conn("post", "/", %{"document" => png_file, "some_param" => "Lorem ipsum"})
       |> put_req_header("content-type", "multipart/form-data")
-      |> MimeTypeCheck.call(%{allowed_mime_types: @allowed_mime_types})
+      |> PlugMimeTypeCheck.call(%{allowed_mime_types: @allowed_mime_types})
 
     assert %Plug.Conn{} = conn
     assert conn.status == nil
@@ -76,7 +76,7 @@ defmodule MimeTypeCheckTest do
     conn =
       conn("post", "/", %{"some_param" => "Lorem ipsum"})
       |> put_req_header("content-type", "application/json")
-      |> MimeTypeCheck.call(%{allowed_mime_types: @allowed_mime_types})
+      |> PlugMimeTypeCheck.call(%{allowed_mime_types: @allowed_mime_types})
 
     assert %Plug.Conn{} = conn
     assert conn.status == nil
@@ -110,7 +110,7 @@ defmodule MimeTypeCheckTest do
     conn =
       conn("post", "/", %{"documents" => documents, "some_param" => "Lorem ipsum"})
       |> put_req_header("content-type", "multipart/form-data")
-      |> MimeTypeCheck.call(%{allowed_mime_types: @allowed_mime_types})
+      |> PlugMimeTypeCheck.call(%{allowed_mime_types: @allowed_mime_types})
 
     assert conn.resp_body == "{\"error_message\":\"Invalid file mime type in field: documents\"}"
     assert conn.status == 400
@@ -133,7 +133,7 @@ defmodule MimeTypeCheckTest do
     conn =
       conn("post", "/", %{"user" => user, "some_param" => "Lorem ipsum"})
       |> put_req_header("content-type", "multipart/form-data")
-      |> MimeTypeCheck.call(%{allowed_mime_types: @allowed_mime_types})
+      |> PlugMimeTypeCheck.call(%{allowed_mime_types: @allowed_mime_types})
 
     assert conn.resp_body == "{\"error_message\":\"Invalid file mime type in field: user\"}"
     assert conn.status == 400
