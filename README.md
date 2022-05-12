@@ -10,7 +10,7 @@ by adding `plug_mime_type_check` to your list of dependencies in `mix.exs`:
 ```elixir
 def deps do
   [
-    {:plug_mime_type_check, "~> 0.1.0"}
+    {:plug_mime_type_check, "~> 0.1.1"}
   ]
 end
 ```

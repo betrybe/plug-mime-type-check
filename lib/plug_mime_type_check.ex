@@ -2,7 +2,7 @@ defmodule PlugMimeTypeCheck do
   @moduledoc """
   A plug that checks the mime-type of a uploaded file through a request
 
-  It requires an options:
+  It requires an option:
 
     * `:allowed_mime_types` - a list of allowed file mime types for the route. It must be a list.
 
@@ -13,7 +13,7 @@ defmodule PlugMimeTypeCheck do
 
   You can apply just to defined actions, for example:
 
-      plug PlugMimeTypeCheck, allowed_mime_types: ["text/csv"] when action in [:create, :update]
+      plug PlugMimeTypeCheck, [allowed_mime_types: ["text/csv"]] when action in [:create, :update]
 
   Or you can plug in your `router.ex` file:
 
