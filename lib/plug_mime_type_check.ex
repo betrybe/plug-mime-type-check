@@ -9,16 +9,16 @@ defmodule PlugMimeTypeCheck do
   To use you can just plug in your controller and it will work to all your actions.
   You must pass the `:allowed_mime_types` list, for example:
 
-      plug PlugMimeTypeCheck, allowed_mime_types: ["text/csv"]
+      plug PlugMimeTypeCheck, allowed_mime_types: ["text/csv", "image/*"]
 
   You can apply just to defined actions, for example:
 
-      plug PlugMimeTypeCheck, [allowed_mime_types: ["text/csv"]] when action in [:create, :update]
+      plug PlugMimeTypeCheck, [allowed_mime_types: ["application/pdf"]] when action in [:create, :update]
 
   Or you can plug in your `router.ex` file:
 
       pipeline :uploads do
-        plug PlugMimeTypeCheck, allowed_mime_types: ["text/csv"]
+        plug PlugMimeTypeCheck, allowed_mime_types: ["image/png"]
       end
 
       scope "/api", MyModuleWeb do
@@ -61,8 +61,19 @@ defmodule PlugMimeTypeCheck do
     |> Enum.map(fn v -> elem(v, 0) end)
   end
 
-  defp check_value(%Plug.Upload{} = v, allowed_mime_types),
-    do: Enum.member?(allowed_mime_types, get_file_type(v.path))
+  defp check_value(%Plug.Upload{} = v, allowed_mime_types) do
+    file_mime_type = get_file_mime_type(v.path)
+
+    case Enum.any?(allowed_mime_types, fn t -> String.contains?(t, "/*") end) do
+      true ->
+        Enum.any?(allowed_mime_types, fn allowed_mime_type ->
+          String.starts_with?(file_mime_type, String.trim(allowed_mime_type, "*"))
+        end)
+
+      false ->
+        Enum.member?(allowed_mime_types, file_mime_type)
+    end
+  end
 
   defp check_value(v, allowed_mime_types) when is_map(v),
     do: check_invalids(v, allowed_mime_types)
@@ -84,7 +95,7 @@ defmodule PlugMimeTypeCheck do
     |> halt()
   end
 
-  defp get_file_type(path) do
+  defp get_file_mime_type(path) do
     {type, 0} = System.cmd("file", ["--mime-type", "-b", path])
 
     String.replace(type, "\n", "")

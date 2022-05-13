@@ -72,6 +72,24 @@ defmodule PlugMimeTypeCheckTest do
     assert conn.status == nil
   end
 
+  test "returns conn when file mime type is valid and allowed types contains generic types" do
+    png_file = %Plug.Upload{
+      content_type: "image/png",
+      filename: "example.png",
+      path: get_file_path("example.png")
+    }
+
+    generic_allowed_mime_types = ["image/*"]
+
+    conn =
+      conn("post", "/", %{"document" => png_file, "some_param" => "Lorem ipsum"})
+      |> put_req_header("content-type", "multipart/form-data")
+      |> PlugMimeTypeCheck.call(%{allowed_mime_types: generic_allowed_mime_types})
+
+    assert %Plug.Conn{} = conn
+    assert conn.status == nil
+  end
+
   test "returns conn when content-type header is not multipart/form-data" do
     conn =
       conn("post", "/", %{"some_param" => "Lorem ipsum"})
