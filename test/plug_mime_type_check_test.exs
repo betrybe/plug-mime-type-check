@@ -16,7 +16,7 @@ defmodule PlugMimeTypeCheckTest do
                  end
   end
 
-  test "returns bad request when file mime type is invalid" do
+  test "returns unprocessable entity when file mime type is invalid" do
     exe_file = %Plug.Upload{
       content_type: "application/x-dosexec",
       filename: "example.exe",
@@ -29,10 +29,26 @@ defmodule PlugMimeTypeCheckTest do
       |> PlugMimeTypeCheck.call(%{allowed_mime_types: @allowed_mime_types})
 
     assert conn.resp_body == "{\"error_message\":\"Invalid file mime type in field: document\"}"
-    assert conn.status == 400
+    assert conn.status == 422
   end
 
-  test "returns bad request when more than one file mime type is invalid" do
+  test "returns unprocessable entity when file mime type is invalid and header contains boundary" do
+    exe_file = %Plug.Upload{
+      content_type: "application/x-dosexec",
+      filename: "example.exe",
+      path: get_file_path("example.exe")
+    }
+
+    conn =
+      conn("post", "/", %{"document" => exe_file, "some_param" => "Lorem ipsum"})
+      |> put_req_header("content-type", "multipart/form-data; boundary=foobar")
+      |> PlugMimeTypeCheck.call(%{allowed_mime_types: @allowed_mime_types})
+
+    assert conn.resp_body == "{\"error_message\":\"Invalid file mime type in field: document\"}"
+    assert conn.status == 422
+  end
+
+  test "returns unprocessable entity when more than one file mime type is invalid" do
     exe_file = %Plug.Upload{
       content_type: "application/x-dosexec",
       filename: "example.exe",
@@ -53,7 +69,7 @@ defmodule PlugMimeTypeCheckTest do
     assert conn.resp_body ==
              "{\"error_message\":\"Invalid files mime types in fields: file1, file2\"}"
 
-    assert conn.status == 400
+    assert conn.status == 422
   end
 
   test "returns conn when file mime type is valid" do
@@ -100,7 +116,7 @@ defmodule PlugMimeTypeCheckTest do
     assert conn.status == nil
   end
 
-  test "returns bad request when any file of multiple field has mime type invalid" do
+  test "returns unprocessable entity when any file of multiple field has mime type invalid" do
     exe_file = %Plug.Upload{
       content_type: "application/x-dosexec",
       filename: "example.exe",
@@ -131,10 +147,10 @@ defmodule PlugMimeTypeCheckTest do
       |> PlugMimeTypeCheck.call(%{allowed_mime_types: @allowed_mime_types})
 
     assert conn.resp_body == "{\"error_message\":\"Invalid file mime type in field: documents\"}"
-    assert conn.status == 400
+    assert conn.status == 422
   end
 
-  test "returns bad request when nested field has mime type invalid" do
+  test "returns unprocessable entity when nested field has mime type invalid" do
     exe_file = %Plug.Upload{
       content_type: "application/x-dosexec",
       filename: "example.exe",
@@ -154,7 +170,7 @@ defmodule PlugMimeTypeCheckTest do
       |> PlugMimeTypeCheck.call(%{allowed_mime_types: @allowed_mime_types})
 
     assert conn.resp_body == "{\"error_message\":\"Invalid file mime type in field: user\"}"
-    assert conn.status == 400
+    assert conn.status == 422
   end
 
   defp get_file_path(filename),

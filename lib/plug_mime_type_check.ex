@@ -42,7 +42,7 @@ defmodule PlugMimeTypeCheck do
 
   def call(conn, opts) do
     case get_req_header(conn, "content-type") do
-      ["multipart/form-data"] -> check_mime_type(conn, opts)
+      ["multipart/form-data" <> _] -> check_mime_type(conn, opts)
       _ -> conn
     end
   end
@@ -91,7 +91,7 @@ defmodule PlugMimeTypeCheck do
 
     conn
     |> put_resp_content_type("application/json")
-    |> send_resp(:bad_request, response)
+    |> send_resp(:unprocessable_entity, response)
     |> halt()
   end
 
